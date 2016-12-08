@@ -1,0 +1,131 @@
+---
+title: "My approach for Data Wrangling Exercise 2 - Titanic"
+author: "ResearchBigD"
+date: "December 7, 2016"
+output: html_document
+---
+
+You are running this report at `r Sys.time()`
+
+#How to run this report and get final clean data in one step? I have to run it step by step to get the final output#
+
+# Set-up
+
+**I run this code to start execution on clean environment**
+
+A Remove all objects in worspace
+
+rm(list = ls())
+
+B Set working directory
+
+setwd("C:/Users/Prabhat_nonadmin/Desktop/BigData/R_Programming/WorkingDirectory")
+
+**Load required packages at start**
+
+C Load packages
+
+```r
+library(readr)
+library(dplyr)
+```
+
+#0: Load the data in RStudio
+
+```r
+ex2_titanic_orig <- read_csv("titanic_original.csv")
+ex2_titanic_orig_bkp <- ex2_titanic_orig
+identical(ex2_titanic_orig, ex2_titanic_orig_bkp)
+```
+
+#A - Inspect the data - number of rows, columns, column type, is the set tidy, NA values, blank values, outliers
+
+```{r eval = FALSE}
+glimpse(ex2_titanic_orig)
+# 14 variables and 1,310 rows
+
+sum(is.na(ex2_titanic_orig))
+#3,869 NA out of 1,310*14 ~ 21% is NA **This does not look correct**
+
+summary(ex2_titanic_orig)
+
+* age has 264 NAs
+* fare has 512 as max, whereas median and mean are 14 and 33
+* Body has 1189 NAs
+
+```
+
+#B - Tidy the data
+
+* No excercise for it
+
+#C - Clean the data
+
+1: Port of embarkation
+The embarked column has some missing values, which are known to correspond to passengers who actually embarked at Southampton. Find the missing values and replace them with S. (Caution: Sometimes a missing value might be read into R as a blank or empty string.)
+
+```r
+ind <- which(is.na(ex2_titanic_orig$embarked))
+ex2_titanic_orig$embarked[ind] <- as.character("S")
+```
+
+2: Age
+You’ll notice that a lot of the values in the Age column are missing. While there are many ways to fill these missing values, using the mean or median of the rest of the values is quite common in such cases.
+
+1 Calculate the mean of the Age column and use that value to populate the missing values
+
+```r
+ex2_age_mean <- mean(ex2_titanic_orig$age, na.rm = TRUE)
+ind <- which(is.na(ex2_titanic_orig$age))
+ex2_titanic_orig$age[ind] <- ex2_age_mean
+```
+
+2 Think about other ways you could have populated the missing values in the age column. Why would you pick any of those over the mean (or not)?
+
+```{r echo = FALSE, eval = FALSE}
+summary(ex2_titanic_orig$age)
+   Min. 1st Qu.  Median    Mean 3rd Qu.    Max.    NA's 
+ 0.1667 21.0000 28.0000 29.8800 39.0000 80.0000     264 
+```
+
+**As median and mean are pretty close, either of them could be used**
+ 
+3: Lifeboat
+You’re interested in looking at the distribution of passengers in different lifeboats, but as we know, many passengers did not make it to a boat :-( This means that there are a lot of missing values in the boat column. Fill these empty slots with a dummy value e.g. the string 'None' or 'NA'
+
+```{r echo = FALSE, eval = FALSE}
+temp_boat_count <- ex2_titanic_orig  %>% count(boat)
+View(temp_boat_count)
+```
+
+```r
+ind <- which(is.na(ex2_titanic_orig$boat))
+ex2_titanic_orig$boat[ind] <- as.character("None")
+```
+
+```{r echo = FALSE, eval = FALSE}
+temp_boat_count <- ex2_titanic_orig  %>% count(boat)
+View(temp_boat_count)
+```
+
+4: Cabin
+You notice that many passengers don’t have a cabin number associated with them.
+Does it make sense to fill missing cabin numbers with a value?
+What does a missing value here mean?
+You have a hunch that the fact that the cabin number is missing might be a useful indicator of survival. 
+
+Create a new column has_cabin_number which has 1 if there is a cabin number, and 0 otherwise.
+
+```r
+ex2_titanic_orig_has_cabin <- ex2_titanic_orig %>% mutate(has_cabin = ifelse(!is.na(cabin), as.numeric(1), as.numeric(0)))
+```
+
+6: Submit the project on Github
+Include your code, the original data as a CSV file titanic_original.csv, and the cleaned up data as a CSV file called titanic_clean.csv.
+
+
+```r
+write.csv(ex2_titanic_orig_has_cabin, file = "titanic_clean.csv")
+```
+
+# Please review output titanic_clean.csv in your working directory
