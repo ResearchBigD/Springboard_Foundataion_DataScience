@@ -1,0 +1,153 @@
+---
+title: "My approach for Data Wrangling Exercise 1- Basic Data Manipulation"
+author: "ResearchBigD"
+date: "December 7, 2016"
+output: html_document
+---
+
+You are running this report at `r Sys.time()`
+
+#How to run this report and get final clean data in one step? I have to run it step by step to get the final output#
+
+#1: Set-up
+
+**I run this code to start execution on clean environment**
+
+A Remove all objects in worspace
+
+rm(list = ls())
+
+B Set working directory
+
+setwd("C:/Users/Prabhat_nonadmin/Desktop/BigData/R_Programming/WorkingDirectory")
+
+**Load required packages at start**
+
+C Load packages
+
+```r
+library(readr)
+library(dplyr)
+library(gdata)
+```
+
+#2: Load the data in RStudio
+
+```r
+refine_orig <- read_csv("refine_original.csv")
+```
+
+```r
+glimpse(refine_orig)
+```
+
+#3: Clean up brand names
+Clean up the 'company' column, so all of the misspellings of the brand names are standardized. For example, you can transform the values in the column to be: philips, akzo, van houten and unilever (all lowercase).
+
+###3.1 - Convert into lower case
+```r
+refine_comp_lower <- refine_orig %>% mutate(comp_lower = tolower(company))
+```
+###3.2 - Do spell correction
+```r
+refine_philips_vector <- gsub("^[pf].*ps$","philips",refine_comp_lower$comp_lower)
+refine_akzo_vector <- gsub("^ak.*$","akzo",refine_philips_vector)
+refine_unilever_vector <- gsub("^un.*$","unilever",refine_akzo_vector)
+refine_comp_lower2 <- refine_comp_lower %>% mutate(comp_lower2 = refine_unilever_vector)
+
+```
+
+#4: Separate product code and number
+Separate the product code and product number into separate columns i.e. add two new columns called product_code and product_number, containing the product code and number respectively
+
+```r
+#Use seperate function of tidyr
+library(tidyr)
+refine_sep_prod_num <- refine_comp_lower2 %>% separate(`Product code / number`,c("product_code","product_number"),'-')
+```
+
+
+
+```{r echo = FALSE, eval=FALSE}
+#Below is for my reference. Code will not show up or run
+refine_sep_prod_num <- refine_comp_lower2 %>% mutate(product_code = gsub("([^.*]+)-.*$","\\1",`Product code / number`), product_number = gsub("^.*-","",`Product code / number`))
+gsub("([^.*]+)-.*$","\\1",temp_string)
+gsub("^.*-","",temp_string)
+[1] "def"
+gsub("-.*$","",temp_string)
+[1] "abc"
+```
+
+#5: Add product categories
+You learn that the product codes actually represent the following product categories:
+
+* p = Smartphone
+* v = TV
+* x = Laptop
+* q = Tablet
+
+In order to make the data more readable, add a column with the product category for each record.
+
+###Option # 1
+```
+category_xref <- data.frame(key = c("p","v","x","q"), val = c("Smartphone", "TV", "Laptop", "Tablet"))
+
+library(qdapTools)
+
+refine_prod_cat <- refine_sep_prod_num %>% mutate(product_category = lookup(product_code,category_xref[1:4,]))
+```
+
+###Option # 2 - *Code is for review/reference, but will not run*
+
+```{r eval=FALSE}
+prod_code_factor <- factor(refine_sep_prod_num$product_code)
+levels(prod_code_factor) <- c("Smartphone", "Tablet", "TV", "Laptop")
+refine_prod_cat <- refine_sep_prod_num %>% mutate(product_category = prod_code_factor)
+
+```
+
+###Option # 3 - *Code is for review/reference, but will not run*
+
+```{r eval=FALSE}
+tut <- c("p" = "Smartphone", "v" = "Tablet", "x" = "TV", "q" = "Laptop")
+refine_prod_cat <- refine_sep_prod_num %>% mutate(product_category = tut[product_code])
+```
+
+#6: Add full address for geocoding
+You'd like to view the customer information on a map. In order to do that, the addresses need to be in a form that can be easily geocoded. Create a new column full_address that concatenates the three address fields (address, city, country), separated by commas.
+
+```r
+refine_full_addr <- refine_prod_cat %>% mutate(full_address = paste(address, city, country, sep = ","))
+```
+
+#7: Create dummy variables for company and product category
+Both the company name and product category are categorical variables i.e. they take only a fixed set of values. In order to use them in further analysis you need to create dummy variables. Create dummy binary variables for each of them with the prefix company_ and product_ i.e.
+
+###7.1 - Add four binary (1 or 0) columns for company: company_philips, company_akzo, company_van_houten and company_unilever
+
+```r
+refine_bin_col <- refine_full_addr %>% mutate(company_philips = ifelse(comp_lower2 == "philips",1,0)) %>% mutate(company_akzo = ifelse(comp_lower2 == "akzo",1,0)) %>% mutate(company_van_houten = ifelse(comp_lower2 == "van houten",1,0)) %>% mutate(company_unilever = ifelse(comp_lower2 == "unilever",1,0))
+```
+###7.2 - Add four binary (1 or 0) columns for product category: product_smartphone, product_tv, product_laptop and product_tablet
+
+```r
+refine_bin_col2 <- refine_bin_col %>% mutate(product_smartphone = ifelse(product_category == "Smartphone",1,0)) %>% mutate(product_tv = ifelse(product_category == "TV",1,0)) %>% mutate(product_laptop = ifelse(product_category == "Laptop",1,0)) %>% mutate(product_tablet = ifelse(product_category == "Tablet",1,0))
+```
+
+#8: Submit the project on Github
+Include your code, the original data as a CSV file refine_original.csv, and the cleaned up data as a CSV file called refine_clean.csv.
+
+
+```r
+refine_clean <- refine_bin_col2 %>% select(comp_lower2, product_code, product_number, full_address, name,company_philips, company_akzo, company_van_houten, company_unilever, product_smartphone, product_tv, product_laptop, product_tablet )
+```
+
+```r
+glimpse(refine_clean)
+```
+
+```r
+write.csv(refine_clean, file = "refine_clean.csv")
+```
+
+# Please review output refine_clean.csv in your working directory
