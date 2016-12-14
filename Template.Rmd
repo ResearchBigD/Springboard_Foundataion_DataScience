@@ -1,5 +1,5 @@
 ---
-title: "My approach for Data Wrangling Exercise 2 - Titanic"
+title: "This is my template to start a new Rmd"
 author: "ResearchBigD"
 date: "December 7, 2016"
 output: html_document
