@@ -24,7 +24,6 @@ summary(Walmart.train$date)
 Walmart.train$IsMonToThu <- as.integer(isWeekday(Walmart.train$date, wday = 1:4))
 Walmart.train$IsFriToSun <- as.integer(isWeekend(Walmart.train$date, wday = 1:4))
 
-## isHolidayShoppingDay takes 12 hours to execute. Hence I saved the file and used it
 ## ----echo=FALSE, eval= FALSE---------------------------------------------
 ## Walmart.train$HolidayShopping <- isHolidayShoppingDay(Walmart.train$date)
 ## Walmart.train <- read.csv("Walmart_HolidayShopping.csv")
@@ -153,6 +152,7 @@ ggplot(highestSellingItems, aes(y = total_units, x = item_nbr, size = total_unit
 ggplot(item45, aes(y = units, x = factor(store_nbr))) + geom_boxplot() + ggtitle("item45")
 
 ggplot(item9, aes(y = units, x = factor(store_nbr))) + geom_boxplot() + ggtitle("item9")
+
 ggplot(item5, aes(y = units, x = factor(store_nbr))) + geom_boxplot() + ggtitle("item5")
 
 item44 <- subset(Walmart.train, item_nbr == 44 & units > 0)
@@ -172,5 +172,11 @@ ggplot(subset(Walmart.train, item_nbr == 16), aes(y = units, x = factor(store_nb
 ggplot(subset(Walmart.train, item_nbr == 23), aes(y = units, x = factor(store_nbr), label = units)) + geom_boxplot() + geom_text(nudge_x = .5) + ggtitle("item23")
 ggplot(subset(Walmart.train, item_nbr == 25), aes(y = units, x = factor(store_nbr), label = units)) + geom_boxplot() + geom_text(nudge_x = .5) + ggtitle("item25")
 ggplot(subset(Walmart.train, item_nbr == 28), aes(y = units, x = factor(store_nbr), label = units)) + geom_boxplot() + geom_text(nudge_x = .5) + ggtitle("item28")
+
+ggplot(subset(Walmart.train, item_nbr == 44), aes(y = units, x = factor(store_nbr), label = units)) + geom_boxplot() + geom_text(nudge_x = .5) + ggtitle("item44")
+
+ggplot(subset(Walmart.train, item_nbr == 45), aes(y = units, x = factor(store_nbr), label = units)) + geom_boxplot() + geom_text(nudge_x = .5) + ggtitle("item45")
+
+ggplot(subset(Walmart.train, item_nbr == 93), aes(y = units, x = factor(store_nbr), label = units)) + geom_boxplot() + geom_text(nudge_x = .5) + ggtitle("item93")
 
 
